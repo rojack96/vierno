@@ -6,7 +6,7 @@ import (
 )
 
 func ShowLogin(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", nil)
+	c.HTML(http.StatusOK, "login.tmpl", nil)
 }
 
 func PerformLogin(c *gin.Context) {
@@ -17,8 +17,8 @@ func PerformLogin(c *gin.Context) {
 	if user == "admin" && pass == "1234" {
 		// Salvare sessione o token nel cookie
 		c.SetCookie("session", "valid", 3600, "/", "", false, true)
-		c.Redirect(http.StatusFound, "/fs")
+		c.Redirect(http.StatusFound, "/dashboard")
 	} else {
-		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"Error": "Invalid credentials"})
+		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"Error": "Invalid credentials"})
 	}
 }

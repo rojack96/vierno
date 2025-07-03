@@ -1,0 +1,19 @@
+app:
+  name: service-be
+  environment: development
+  version: 1.0.0
+
+database:
+  host: localhost
+  port: 5432
+  user: devuser
+  password: devpass
+  name: service_be_dev
+
+logging:
+  level: debug
+
+features:
+  - authentication
+  - logging
+  - api
