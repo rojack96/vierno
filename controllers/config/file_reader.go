@@ -36,11 +36,6 @@ func GetSimpleFile(c *gin.Context) {
 		return
 	}
 
-	if fr.RequestFormat != "" {
-		fr.requestWithFormat()
-		return
-	}
-
 	fr.returnFile()
 }
 
@@ -72,81 +67,72 @@ func (fr *FileReader) returnFile() {
 }
 
 func (fr *FileReader) returnJsonFile() {
+	j := Json{File: fr.File}
+	switch fr.RequestFormat {
+	case "yaml", "yml":
+		// fai conversione da JSON a YAML
+		if fr.File, _ = j.ToYaml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to YAML failed"})
+			return
+		}
+		fr.returnYamlFile()
+		return
+	case "properties", "xml":
+		// fai conversione da JSON a XML
+		if fr.File, _ = j.ToXml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to XML failed"})
+			return
+		}
+		fr.returnXmlFile()
+		return
+	}
 	fr.Ctx.Data(200, "application/json", fr.File)
 }
 
 func (fr *FileReader) returnYamlFile() {
+	y := Yaml{File: fr.File}
+	switch fr.RequestFormat {
+	case "json":
+		// fai conversione da YAML a JSON
+		if fr.File, _ = y.ToJson(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to JSON failed"})
+			return
+		}
+		fr.returnJsonFile()
+		return
+	case "properties", "xml":
+		// fai conversione da YAML a XML
+		if fr.File, _ = y.ToXml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to XML failed"})
+			return
+		}
+		fr.returnXmlFile()
+		return
+	}
 	fr.Ctx.Data(200, "text/plain; charset=utf-8", fr.File)
 }
 
 func (fr *FileReader) returnXmlFile() {
+	x := Xml{File: fr.File}
+	switch fr.RequestFormat {
+	case "json":
+		// fai conversione da XML a JSON
+		if fr.File, _ = x.ToJson(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to JSON failed"})
+			return
+		}
+		fr.returnJsonFile()
+		return
+	case "yaml", "yml":
+		// fai conversione da XML a YAML
+		if fr.File, _ = x.ToYaml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to YAML failed"})
+			return
+		}
+		fr.returnYamlFile()
+		return
+	}
 	fr.Ctx.Data(200, "application/xml", fr.File)
-}
-
-func (fr *FileReader) requestWithFormat() {
-
-	if "."+fr.RequestFormat == fr.FileFormat {
-		fr.returnFile()
-		return
-	}
-
-	switch fr.FileFormat {
-	case ".json":
-		j := &Json{File: fr.File}
-		switch fr.RequestFormat {
-		case "yaml", "yml":
-			// fai conversione da YAML a JSON
-			fr.File, _ = j.ToYaml()
-			fr.returnYamlFile()
-			return
-		case "properties", "xml":
-			// fai conversione da Properties a JSON
-			fr.File, _ = j.ToXml()
-			fr.returnXmlFile()
-			return
-		default:
-			fr.Ctx.JSON(400, gin.H{"error": "unsupported file type for JSON conversion"})
-			return
-		}
-	case ".yaml", ".yml":
-		y := &Yaml{File: fr.File}
-		switch fr.RequestFormat {
-		case "json":
-			// fai conversione da YAML a JSON
-			fr.File, _ = y.ToJson()
-			fr.returnJsonFile()
-			return
-		case "properties":
-			// fai conversione da Properties a JSON
-			fr.File, _ = y.ToXml()
-			fr.returnXmlFile()
-			return
-		default:
-			fr.Ctx.JSON(400, gin.H{"error": "unsupported file type for JSON conversion"})
-			return
-		}
-	case "properties", "xml":
-		x := &Xml{File: fr.File}
-		switch fr.FileFormat {
-		case ".json":
-			// fai conversione da Properties a JSON
-			fr.File, _ = x.ToJson()
-			fr.returnXmlFile()
-			return
-		case "yaml", "yml":
-			// fai conversione da YAML a JSON
-			fr.File, _ = x.ToYaml()
-			fr.returnYamlFile()
-			return
-		default:
-			fr.Ctx.JSON(400, gin.H{"error": "unsupported file type for JSON conversion"})
-			return
-		}
-	default:
-		fr.Ctx.JSON(400, gin.H{"error": "unsupported format"})
-		return
-	}
-
 }
 
 func fileNameExt(filename string) (string, string) {
@@ -225,13 +211,13 @@ func (y *Yaml) ToXml() ([]byte, error) {
 }
 
 // XML → JSON
-func (x *Xml) ToJson() ([]byte, error) {
-	mv, err := mxj.NewMapXml(x.File)
-	if err != nil {
-		return nil, err
-	}
-	return mv.JsonIndent("", "  ")
-}
+// func (x *Xml) ToJson() ([]byte, error) {
+// 	mv, err := mxj.NewMapXml(x.File)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return mv.JsonIndent("", "  ")
+// }
 
 // XML → YAML
 func (x *Xml) ToYaml() ([]byte, error) {
@@ -241,4 +227,40 @@ func (x *Xml) ToYaml() ([]byte, error) {
 	}
 	j := &Json{File: jsonData}
 	return j.ToYaml()
+}
+
+// XML → JSON
+func (x *Xml) ToJson() ([]byte, error) {
+	mv, err := mxj.NewMapXml(x.File)
+	if err != nil {
+		return nil, err
+	}
+
+	// Estrarre la mappa interna
+	props, ok := mv["properties"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("struttura XML inattesa (manca 'properties')")
+	}
+
+	entries, ok := props["entry"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("struttura XML inattesa (manca 'entry')")
+	}
+
+	// Costruisci la mappa semplificata
+	result := make(map[string]string)
+	for _, e := range entries {
+		entryMap, ok := e.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		key, ok1 := entryMap["-key"].(string)
+		val, ok2 := entryMap["#text"].(string)
+		if ok1 && ok2 {
+			result[key] = val
+		}
+	}
+
+	// Convertilo in JSON
+	return json.MarshalIndent(result, "", "  ")
 }
