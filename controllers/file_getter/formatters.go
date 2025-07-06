@@ -1,4 +1,4 @@
-package file_reader
+package file_getter
 
 import (
 	"encoding/json"

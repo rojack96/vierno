@@ -1,24 +1,32 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func ShowLogin(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.tmpl", nil)
+	redirect := c.Query("redirect")
+	c.HTML(http.StatusOK, "login.tmpl", gin.H{"Redirect": redirect})
 }
 
 func PerformLogin(c *gin.Context) {
 	user := c.PostForm("username")
 	pass := c.PostForm("password")
+	redirect := c.PostForm("redirect")
+	if redirect == "" {
+		redirect = c.Query("redirect")
+	}
 
-	// Semplice validazione demo
 	if user == "admin" && pass == "1234" {
-		// Salvare sessione o token nel cookie
 		c.SetCookie("session", "valid", 3600, "/", "", false, true)
-		c.Redirect(http.StatusFound, "/dashboard")
+		if redirect != "" {
+			c.Redirect(http.StatusFound, redirect)
+		} else {
+			c.Redirect(http.StatusFound, "/dashboard")
+		}
 	} else {
-		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"Error": "Invalid credentials"})
+		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"Error": "Invalid credentials", "Redirect": redirect})
 	}
 }

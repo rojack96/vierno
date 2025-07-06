@@ -2,28 +2,29 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/rojack96/vierno/config"
 	"github.com/rojack96/vierno/controllers"
-	"github.com/rojack96/vierno/controllers/file_reader"
-	//"github.com/rojack96/vierno/middleware"
+	"github.com/rojack96/vierno/controllers/file_getter"
+	"github.com/rojack96/vierno/middleware"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./static")
 
+	// Login page (solo per mostrare il form, non gestisce più la sessione)
 	r.GET("/login", controllers.ShowLogin)
-	r.POST("/login", controllers.PerformLogin)
-	r.GET("/:app", file_reader.GetFile)
-	r.GET("/:app/:profile", file_reader.GetSimpleFile)
-	// r.GET("/config/:filename", config.GetFile)
 
-	/*auth := r.Group("/", middleware.AuthRequired())
+	// Tutte le route protette da Basic Auth
+	protected := r.Group("/",
+		middleware.ConfigRequired(cfg),
+		middleware.AuthRequired("admin", "1234"),
+	)
 	{
-		auth.GET("/fs", controllers.ListFiles)
-		auth.GET("/fs/:filename", controllers.ShowEditFile)
-		auth.POST("/fs/:filename", controllers.SaveFile)
-	}*/
+		protected.GET(":app/:profile", file_getter.GetSimpleFile)
+		protected.GET(":app", file_getter.GetFile)
+	}
 
 	return r
 }

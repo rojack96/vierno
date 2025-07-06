@@ -1,0 +1,9 @@
+{
+  "port": "4788",
+  "production": false,
+  "defaultConfigReturn": "json",
+  "dashboard": {
+    "enabled": true,
+    "title": "Vierno Dashboard"
+  }
+}

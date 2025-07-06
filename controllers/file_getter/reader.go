@@ -1,4 +1,4 @@
-package file_reader
+package file_getter
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ import (
 
 type FileReader struct {
 	File          []byte
-	RequestFormat string // formato della richiesta (json, yaml, properties)
 	FileFormat    string // formato del file (json, yaml, properties)
+	DefaultReturn string // formato di ritorno predefinito (json, yaml, xml)
 	Ctx           *gin.Context
 }
 
@@ -30,13 +30,14 @@ func (fr *FileReader) checkout() {
 	}
 }
 
-func (fr *FileReader) returnFile() {
+func (fr *FileReader) returnOriginalFile() {
 
 	response := map[string]func(fr *FileReader){
 		".json":       (*FileReader).returnJsonFile,
 		".yaml":       (*FileReader).returnYamlFile,
 		".yml":        (*FileReader).returnYamlFile,
 		".properties": (*FileReader).returnXmlFile,
+		".xml":        (*FileReader).returnXmlFile,
 	}
 
 	if handler, ok := response[fr.FileFormat]; ok {
@@ -48,72 +49,82 @@ func (fr *FileReader) returnFile() {
 	}
 }
 
-func (fr *FileReader) returnJsonFile() {
-	j := Json{File: fr.File}
-	switch fr.RequestFormat {
+func (fr *FileReader) returnConfigFile() {
+	switch fr.DefaultReturn {
+	case "json":
+		fr.defaultByJson()
 	case "yaml", "yml":
-		// fai conversione da JSON a YAML
-		if fr.File, _ = j.ToYaml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to YAML failed"})
-			return
-		}
-		fr.returnYamlFile()
-		return
+		fr.defaultByYaml()
 	case "properties", "xml":
-		// fai conversione da JSON a XML
-		if fr.File, _ = j.ToXml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to XML failed"})
+		fr.defaultByXml()
+	default:
+		fr.defaultByJson()
+	}
+}
+
+func (fr *FileReader) defaultByJson() {
+	switch fr.FileFormat {
+	case ".yaml", ".yml":
+		y := Yaml{File: fr.File}
+		if fr.File, _ = y.ToJson(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed"})
 			return
 		}
-		fr.returnXmlFile()
-		return
+	case ".properties", ".xml":
+		x := Xml{File: fr.File}
+		if fr.File, _ = x.ToJson(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed"})
+			return
+		}
 	}
+	fr.returnJsonFile()
+}
+
+func (fr *FileReader) defaultByYaml() {
+	switch fr.FileFormat {
+	case ".json":
+		j := Json{File: fr.File}
+		if fr.File, _ = j.ToYaml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to yaml failed"})
+			return
+		}
+	case ".properties", ".xml":
+		x := Xml{File: fr.File}
+		if fr.File, _ = x.ToYaml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to yaml failed"})
+			return
+		}
+	}
+	fr.returnYamlFile()
+}
+
+func (fr *FileReader) defaultByXml() {
+	switch fr.FileFormat {
+	case ".json":
+		j := Json{File: fr.File}
+		if fr.File, _ = j.ToXml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed"})
+			return
+		}
+	case ".yaml", ".yml":
+		y := Yaml{File: fr.File}
+		if fr.File, _ = y.ToXml(); fr.File == nil {
+			fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed"})
+			return
+		}
+	}
+	fr.returnXmlFile()
+}
+
+func (fr *FileReader) returnJsonFile() {
 	fr.Ctx.Data(200, "application/json", fr.File)
 }
 
 func (fr *FileReader) returnYamlFile() {
-	y := Yaml{File: fr.File}
-	switch fr.RequestFormat {
-	case "json":
-		// fai conversione da YAML a JSON
-		if fr.File, _ = y.ToJson(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to JSON failed"})
-			return
-		}
-		fr.returnJsonFile()
-		return
-	case "properties", "xml":
-		// fai conversione da YAML a XML
-		if fr.File, _ = y.ToXml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to XML failed"})
-			return
-		}
-		fr.returnXmlFile()
-		return
-	}
 	fr.Ctx.Data(200, "text/plain; charset=utf-8", fr.File)
 }
 
 func (fr *FileReader) returnXmlFile() {
-	x := Xml{File: fr.File}
-	switch fr.RequestFormat {
-	case "json":
-		// fai conversione da XML a JSON
-		if fr.File, _ = x.ToJson(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to JSON failed"})
-			return
-		}
-		fr.returnJsonFile()
-		return
-	case "yaml", "yml":
-		// fai conversione da XML a YAML
-		if fr.File, _ = x.ToYaml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to YAML failed"})
-			return
-		}
-		fr.returnYamlFile()
-		return
-	}
 	fr.Ctx.Data(200, "application/xml", fr.File)
 }
 
