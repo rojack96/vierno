@@ -15,11 +15,12 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 
 	// Login page (solo per mostrare il form, non gestisce più la sessione)
 	r.GET("/login", controllers.ShowLogin)
+	r.POST("/login", controllers.PerformLogin)
 
 	// Tutte le route protette da Basic Auth
 	protected := r.Group("/",
 		middleware.ConfigRequired(cfg),
-		middleware.AuthRequired("admin", "1234"),
+		middleware.AuthMiddleware(),
 	)
 	{
 		protected.GET(":app/:profile", file_getter.GetSimpleFile)

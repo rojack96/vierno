@@ -52,7 +52,7 @@
 <body>
     <div class="container">
         <h2>Login</h2>
-        <form id="loginForm">
+        <form method="POST" action="/login">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required />
@@ -61,40 +61,13 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required />
             </div>
-            <input type="hidden" id="redirect" name="redirect" value="{{ .Redirect }}">
             <button type="submit">Login</button>
-            <div id="error" class="error" style="display:none;"></div>
+
+            {{if .Error}}
+            <div class="error">{{.Error}}</div>
+            {{end}}
         </form>
     </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const redirect = document.getElementById('redirect').value || '/dashboard';
-            const credentials = btoa(user + ':' + pass);
-
-            // Prova ad accedere a una risorsa protetta con Basic Auth
-            const response = await fetch(redirect, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + credentials
-                }
-            });
-
-            if (response.status === 200) {
-                // Salva le credenziali in sessionStorage per usarle nelle richieste successive (opzionale)
-                sessionStorage.setItem('basicAuth', credentials);
-                window.location.href = redirect;
-            } else if (response.status === 401) {
-                document.getElementById('error').innerText = "Credenziali non valide";
-                document.getElementById('error').style.display = "block";
-            } else {
-                document.getElementById('error').innerText = "Errore: " + response.status;
-                document.getElementById('error').style.display = "block";
-            }
-        });
-    </script>
 </body>
 
 </html>
