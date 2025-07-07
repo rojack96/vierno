@@ -10,7 +10,7 @@ const Login = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const credentials = btoa(`${username}:${password}`);
+        // const credentials = btoa(`${username}:${password}`);
 
         const res = await fetch("/login", {
             method: "POST",
@@ -18,13 +18,13 @@ const Login = () => {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
             body: new URLSearchParams({
-                username: "admin",
-                password: "1234",
+                username,
+                password,
             }),
         })
 
         if (res.status === 200) {
-            sessionStorage.setItem("basicAuth", credentials);
+            // sessionStorage.setItem("basicAuth", credentials);
             navigate("/dashboard");
         } else if (res.status === 401) {
             setError("Credenziali non valide");

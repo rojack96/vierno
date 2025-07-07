@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rojack96/vierno/config"
 )
 
 func ShowLogin(c *gin.Context) {
@@ -14,7 +15,15 @@ func PerformLogin(c *gin.Context) {
 	user := c.PostForm("username")
 	pass := c.PostForm("password")
 
-	if user == "admin" && pass == "1234" {
+	value, exists := c.Get("viernoConfig")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "configurazione mancante"})
+		return
+	}
+
+	cfg := value.(*config.ViernoConfig)
+
+	if user == cfg.Vierno.Auth.User && pass == cfg.Vierno.Auth.Password {
 		// Imposta cookie valido per 1 ora
 		c.SetCookie("session", "valid", 3600, "/", "", false, true)
 

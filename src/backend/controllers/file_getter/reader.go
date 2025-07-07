@@ -73,6 +73,9 @@ func (fr *FileReader) defaultByJson() {
 		transformer = &Yaml{File: fr.File}
 	case ".properties", ".xml":
 		transformer = &Xml{File: fr.File}
+	default:
+		fr.returnJsonFile()
+		return
 	}
 
 	if transformer == nil {
@@ -97,6 +100,9 @@ func (fr *FileReader) defaultByYaml() {
 		transformer = &Json{File: fr.File}
 	case ".properties", ".xml":
 		transformer = &Xml{File: fr.File}
+	default:
+		fr.returnYamlFile()
+		return
 	}
 
 	if transformer == nil {
@@ -121,7 +127,11 @@ func (fr *FileReader) defaultByXml() {
 		transformer = &Json{File: fr.File}
 	case ".yaml", ".yml":
 		transformer = &Yaml{File: fr.File}
+	default:
+		fr.returnXmlFile()
+		return
 	}
+
 	if transformer == nil {
 		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
 		return
