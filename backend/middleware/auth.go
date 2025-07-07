@@ -30,7 +30,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Se la richiesta sembra provenire da un browser, fai redirect alla login
 		accept := c.GetHeader("Accept")
 		if strings.Contains(accept, "text/html") || strings.Contains(accept, "application/xhtml+xml") {
-			c.Redirect(http.StatusFound, "/login")
+			c.Redirect(http.StatusFound, "/")
 			c.Abort()
 			return
 		}

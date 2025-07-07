@@ -10,15 +10,30 @@ type DashboardConfig struct {
 	Title   string `json:"title"`
 }
 
+type Vierno struct {
+	Folder              string `json:"folder"`
+	Production          bool   `json:"production"`
+	Port                string `json:"port"`
+	DefaultFormatReturn string `json:"defaultFormatReturn"`
+}
+
+type Git struct {
+	Repo    string `json:"repo"`
+	Branch  string `json:"branch"`
+	AuthKey string `json:"authKey"`
+}
+
 type ViernoConfig struct {
-	Port                string          `json:"port"`
-	Production          bool            `json:"production"`
-	DefaultConfigReturn string          `json:"defaultConfigReturn"`
-	Dashboard           DashboardConfig `json:"dashboard"`
+	Vierno    Vierno          `json:"vierno"`
+	Git       Git             `json:"git"`
+	Dashboard DashboardConfig `json:"dashboard"`
 }
 
 func ReadViernoConfig() (*ViernoConfig, error) {
-	fileBytes, err := os.ReadFile("vierno.config.json")
+	// filePath := "vierno.config.json"
+	// Only development, so the file is in the parent directory
+	filePath := "../vierno.config.json"
+	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

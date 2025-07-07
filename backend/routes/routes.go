@@ -5,23 +5,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rojack96/vierno/config"
-	"github.com/rojack96/vierno/controllers"
 	"github.com/rojack96/vierno/controllers/file_getter"
 	"github.com/rojack96/vierno/middleware"
 )
 
 func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	r := gin.Default()
-	r.Static("/assets", "./frontend/dist/assets") // vite mette tutto in /assets
-	r.LoadHTMLFiles("./frontend/dist/index.html")
+	// assetPath := "./dist/assets"
+	// indexPath := "./dist/index.html"
+	// Only development, so the assets are in the parent directory
+	assetPath := "../dist/assets"
+	indexPath := "../dist/index.html"
+	r.Static("/assets", assetPath)
+	r.LoadHTMLFiles(indexPath)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 
 	// Login page (solo per mostrare il form, non gestisce più la sessione)
-	r.GET("/login", controllers.ShowLogin)
-	r.POST("/login", controllers.PerformLogin)
+	//r.GET("/login", controllers.ShowLogin)
+	//r.POST("/login", controllers.PerformLogin)
 
 	// Tutte le route protette da Basic Auth
 	protected := r.Group("/",

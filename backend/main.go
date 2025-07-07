@@ -14,7 +14,7 @@ func main() {
 	}
 
 	r := routes.SetupRouter(cfg)
-	if err = r.Run(":" + cfg.Port); err != nil {
+	if err = r.Run(":" + cfg.Vierno.Port); err != nil {
 		return
 	}
 
