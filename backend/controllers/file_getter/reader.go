@@ -63,55 +63,72 @@ func (fr *FileReader) returnConfigFile() {
 }
 
 func (fr *FileReader) defaultByJson() {
+	var (
+		transformer JsonTransformer
+		err         error
+	)
+
 	switch fr.FileFormat {
 	case ".yaml", ".yml":
-		y := Yaml{File: fr.File}
-		if fr.File, _ = y.ToJson(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed"})
-			return
-		}
+		transformer = &Yaml{File: fr.File}
 	case ".properties", ".xml":
-		x := Xml{File: fr.File}
-		if fr.File, _ = x.ToJson(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed"})
-			return
-		}
+		transformer = &Xml{File: fr.File}
+	}
+
+	if transformer == nil {
+		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
+		return
+	}
+
+	if fr.File, err = transformer.ToJson(); err != nil {
+		fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed", "details": err.Error()})
+		return
 	}
 	fr.returnJsonFile()
 }
 
 func (fr *FileReader) defaultByYaml() {
+	var (
+		transformer YamlTransformer
+		err         error
+	)
 	switch fr.FileFormat {
 	case ".json":
-		j := Json{File: fr.File}
-		if fr.File, _ = j.ToYaml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to yaml failed"})
-			return
-		}
+		transformer = &Json{File: fr.File}
 	case ".properties", ".xml":
-		x := Xml{File: fr.File}
-		if fr.File, _ = x.ToYaml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to yaml failed"})
-			return
-		}
+		transformer = &Xml{File: fr.File}
+	}
+
+	if transformer == nil {
+		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
+		return
+	}
+
+	if fr.File, err = transformer.ToYaml(); err != nil {
+		fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed", "details": err.Error()})
+		return
 	}
 	fr.returnYamlFile()
 }
 
 func (fr *FileReader) defaultByXml() {
+	var (
+		transformer XmlTransformer
+		err         error
+	)
 	switch fr.FileFormat {
 	case ".json":
-		j := Json{File: fr.File}
-		if fr.File, _ = j.ToXml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed"})
-			return
-		}
+		transformer = &Json{File: fr.File}
 	case ".yaml", ".yml":
-		y := Yaml{File: fr.File}
-		if fr.File, _ = y.ToXml(); fr.File == nil {
-			fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed"})
-			return
-		}
+		transformer = &Yaml{File: fr.File}
+	}
+	if transformer == nil {
+		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
+		return
+	}
+	if fr.File, err = transformer.ToXml(); err != nil {
+		fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed", "details": err.Error()})
+		return
 	}
 	fr.returnXmlFile()
 }

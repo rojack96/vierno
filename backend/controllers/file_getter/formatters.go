@@ -9,6 +9,19 @@ import (
 )
 
 /* FileFormat */
+
+type JsonTransformer interface {
+	ToJson() ([]byte, error)
+}
+
+type YamlTransformer interface {
+	ToYaml() ([]byte, error)
+}
+
+type XmlTransformer interface {
+	ToXml() ([]byte, error)
+}
+
 type Json struct {
 	File []byte
 }

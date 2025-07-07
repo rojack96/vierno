@@ -1,7 +1,15 @@
 {
-  "port": "4788",
-  "production": false,
-  "defaultConfigReturn": "json",
+  "vierno": {
+    "folder": "./app",
+    "production": false,
+    "port": "4788",
+    "defaultFormatReturn": "json"
+  },
+  "git": {
+    "repo": "",
+    "branch": "main",
+    "authKey": ""
+  },
   "dashboard": {
     "enabled": true,
     "title": "Vierno Dashboard"

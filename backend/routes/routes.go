@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/rojack96/vierno/config"
 	"github.com/rojack96/vierno/controllers"
@@ -10,8 +12,12 @@ import (
 
 func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
-	r.Static("/static", "./static")
+	r.Static("/assets", "./frontend/dist/assets") // vite mette tutto in /assets
+	r.LoadHTMLFiles("./frontend/dist/index.html")
+
+	r.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
 
 	// Login page (solo per mostrare il form, non gestisce più la sessione)
 	r.GET("/login", controllers.ShowLogin)
