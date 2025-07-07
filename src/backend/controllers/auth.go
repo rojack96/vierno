@@ -15,11 +15,15 @@ func PerformLogin(c *gin.Context) {
 	pass := c.PostForm("password")
 
 	if user == "admin" && pass == "1234" {
-		// Salvare sessione o token nel cookie
+		// Imposta cookie valido per 1 ora
 		c.SetCookie("session", "valid", 3600, "/", "", false, true)
-		c.Redirect(http.StatusFound, "/dashboard")
-	} else {
-		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"Error": "Invalid credentials"})
-	}
 
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Login effettuato con successo",
+		})
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Credenziali non valide",
+		})
+	}
 }

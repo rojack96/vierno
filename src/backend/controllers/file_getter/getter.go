@@ -12,7 +12,9 @@ import (
 // Controller for endpoint /:app/:profile?origin=json|yaml|properties
 func GetSimpleFile(c *gin.Context) {
 	// TODO add middleware to recognize if is logged or not
-	const BasePath = "./app"
+	// const BasePath = "./app"
+	// Development path
+	const BasePath = "../../vierno-config-server/app"
 
 	fr := FileReader{Ctx: c}
 	fr.checkout()

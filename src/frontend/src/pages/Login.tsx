@@ -12,11 +12,16 @@ const Login = () => {
 
         const credentials = btoa(`${username}:${password}`);
 
-        const res = await fetch("/api/status", {
+        const res = await fetch("/login", {
+            method: "POST",
             headers: {
-                "Authorization": `Basic ${credentials}`,
+                "Content-Type": "application/x-www-form-urlencoded",
             },
-        });
+            body: new URLSearchParams({
+                username: "admin",
+                password: "1234",
+            }),
+        })
 
         if (res.status === 200) {
             sessionStorage.setItem("basicAuth", credentials);
