@@ -14,8 +14,8 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	// assetPath := "./dist/assets"
 	// indexPath := "./dist/index.html"
 	// Only development, so the assets are in the parent directory
-	assetPath := "../dist/assets"
-	indexPath := "../dist/index.html"
+	assetPath := "../../vierno-config-server/dist/assets"
+	indexPath := "../../vierno-config-server/dist/index.html"
 	r.Static("/assets", assetPath)
 	r.LoadHTMLFiles(indexPath)
 
@@ -30,7 +30,7 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	// Tutte le route protette da Basic Auth
 	protected := r.Group("/",
 		middleware.ConfigRequired(cfg),
-		middleware.AuthMiddleware(),
+		middleware.AuthMiddleware(cfg),
 	)
 	{
 		protected.GET(":app/:profile", file_getter.GetSimpleFile)

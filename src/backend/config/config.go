@@ -15,6 +15,11 @@ type Vierno struct {
 	Production          bool   `json:"production"`
 	Port                string `json:"port"`
 	DefaultFormatReturn string `json:"defaultFormatReturn"`
+	Auth                struct {
+		Enabled  bool   `json:"enabled"`
+		User     string `json:"user"`
+		Password string `json:"password"`
+	} `json:"auth"`
 }
 
 type Git struct {
@@ -32,7 +37,7 @@ type ViernoConfig struct {
 func ReadViernoConfig() (*ViernoConfig, error) {
 	// filePath := "vierno.config.json"
 	// Only development, so the file is in the parent directory
-	filePath := "../vierno.config.json"
+	filePath := "../../vierno-config-server/vierno.config.json"
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err

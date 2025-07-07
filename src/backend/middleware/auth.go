@@ -6,16 +6,17 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rojack96/vierno/config"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(cfg *config.ViernoConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := c.GetHeader("Authorization")
 		if strings.HasPrefix(auth, "Basic ") {
 			payload, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(auth, "Basic "))
 			if err == nil {
 				parts := strings.SplitN(string(payload), ":", 2)
-				if len(parts) == 2 && parts[0] == "admin" && parts[1] == "1234" {
+				if len(parts) == 2 && parts[0] == cfg.Vierno.Auth.User && parts[1] == cfg.Vierno.Auth.Password {
 					c.Next()
 					return
 				}

@@ -3,7 +3,12 @@
     "folder": "./app",
     "production": false,
     "port": "4788",
-    "defaultFormatReturn": "json"
+    "defaultFormatReturn": "json",
+    "auth": {
+      "enabled": true,
+      "user": "admin",
+      "password": "admin"
+    }
   },
   "git": {
     "repo": "",
