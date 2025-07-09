@@ -30,6 +30,10 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	//r.GET("/login", controllers.ShowLogin)
 	r.POST("/login", controllers.PerformLogin)
 
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		c.Status(204) // oppure serve un vero file favicon se vuoi
+	})
+
 	// Tutte le route protette da Basic Auth
 	protected := r.Group("/",
 		middleware.AuthMiddleware(cfg),

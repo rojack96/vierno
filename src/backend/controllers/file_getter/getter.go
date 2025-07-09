@@ -48,18 +48,20 @@ func GetSimpleFile(c *gin.Context) {
 
 func GetFile(c *gin.Context) {
 	// TODO add middleware to recognize if is logged or not
-	const BasePath = "./app"
+	// const BasePath = "./app"
+	// Development path
+	const BasePath = "../../vierno-config-server/app"
 
 	fr := FileReader{Ctx: c}
 	fr.checkout()
 
 	// Request parameters
 	filename := c.Param("app")
-	isOriginal := c.Query("original") == "true"
 
 	req := strings.Split(filename, ".")
 	app := req[0]
 	profile := req[1]
+	fr.RequestFileFormat = &req[2]
 
 	folder := filepath.Join(BasePath, app)
 
@@ -72,11 +74,6 @@ func GetFile(c *gin.Context) {
 	fr.File, err = os.ReadFile(path)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "file not found or cannot be read"})
-		return
-	}
-
-	if isOriginal {
-		fr.returnOriginalFile()
 		return
 	}
 

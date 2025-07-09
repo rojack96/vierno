@@ -12,10 +12,11 @@ import (
 /* FileReader */
 
 type FileReader struct {
-	File          []byte
-	FileFormat    string // formato del file (json, yaml, properties)
-	DefaultReturn string // formato di ritorno predefinito (json, yaml, xml)
-	Ctx           *gin.Context
+	File              []byte
+	FileFormat        string  // formato del file (json, yaml, properties)
+	RequestFileFormat *string // formato del file richiesto (json, yaml, properties)
+	DefaultReturn     string  // formato di ritorno predefinito (json, yaml, xml)
+	Ctx               *gin.Context
 }
 
 // checkout checks if a branch is specified in the request and performs a checkout if needed.
@@ -33,11 +34,11 @@ func (fr *FileReader) checkout() {
 func (fr *FileReader) returnOriginalFile() {
 
 	response := map[string]func(fr *FileReader){
-		".json":       (*FileReader).returnJsonFile,
-		".yaml":       (*FileReader).returnYamlFile,
-		".yml":        (*FileReader).returnYamlFile,
-		".properties": (*FileReader).returnXmlFile,
-		".xml":        (*FileReader).returnXmlFile,
+		".json":       (*FileReader).responseJson,
+		".yaml":       (*FileReader).responseYaml,
+		".yml":        (*FileReader).responseYaml,
+		".properties": (*FileReader).responseXml,
+		".xml":        (*FileReader).responseXml,
 	}
 
 	if handler, ok := response[fr.FileFormat]; ok {
@@ -50,6 +51,23 @@ func (fr *FileReader) returnOriginalFile() {
 }
 
 func (fr *FileReader) returnConfigFile() {
+	if fr.RequestFileFormat != nil {
+		switch *fr.RequestFileFormat {
+		case "json":
+			fr.defaultByJson()
+			return
+		case "yaml", "yml":
+			fr.defaultByYaml()
+			return
+		case "properties", "xml":
+			fr.defaultByXml()
+			return
+		default:
+			fr.Ctx.JSON(400, gin.H{"error": "unsupported requested file format"})
+			return
+		}
+	}
+
 	switch fr.DefaultReturn {
 	case "json":
 		fr.defaultByJson()
@@ -74,7 +92,7 @@ func (fr *FileReader) defaultByJson() {
 	case ".properties", ".xml":
 		transformer = &Xml{File: fr.File}
 	default:
-		fr.returnJsonFile()
+		fr.responseJson()
 		return
 	}
 
@@ -87,7 +105,7 @@ func (fr *FileReader) defaultByJson() {
 		fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed", "details": err.Error()})
 		return
 	}
-	fr.returnJsonFile()
+	fr.responseJson()
 }
 
 func (fr *FileReader) defaultByYaml() {
@@ -101,7 +119,7 @@ func (fr *FileReader) defaultByYaml() {
 	case ".properties", ".xml":
 		transformer = &Xml{File: fr.File}
 	default:
-		fr.returnYamlFile()
+		fr.responseYaml()
 		return
 	}
 
@@ -114,7 +132,7 @@ func (fr *FileReader) defaultByYaml() {
 		fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed", "details": err.Error()})
 		return
 	}
-	fr.returnYamlFile()
+	fr.responseYaml()
 }
 
 func (fr *FileReader) defaultByXml() {
@@ -128,7 +146,7 @@ func (fr *FileReader) defaultByXml() {
 	case ".yaml", ".yml":
 		transformer = &Yaml{File: fr.File}
 	default:
-		fr.returnXmlFile()
+		fr.responseXml()
 		return
 	}
 
@@ -140,18 +158,18 @@ func (fr *FileReader) defaultByXml() {
 		fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed", "details": err.Error()})
 		return
 	}
-	fr.returnXmlFile()
+	fr.responseXml()
 }
 
-func (fr *FileReader) returnJsonFile() {
+func (fr *FileReader) responseJson() {
 	fr.Ctx.Data(200, "application/json", fr.File)
 }
 
-func (fr *FileReader) returnYamlFile() {
+func (fr *FileReader) responseYaml() {
 	fr.Ctx.Data(200, "text/plain; charset=utf-8", fr.File)
 }
 
-func (fr *FileReader) returnXmlFile() {
+func (fr *FileReader) responseXml() {
 	fr.Ctx.Data(200, "application/xml", fr.File)
 }
 
