@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard'; // crea anche questa per test
+import "@fontsource/inter/400.css";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
