@@ -11,6 +11,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 )
 
+const GitName = "git"
+
 type Git struct {
 	Repo        string  `json:"repo" yaml:"repo"`
 	Branch      string  `json:"branch" yaml:"branch"`
@@ -22,6 +24,8 @@ type Git struct {
 		PrivateKeyPath *string `json:"privateKeyPath" yaml:"privateKeyPath"`
 		Passwd         *string `json:"passwd" yaml:"passwd"`
 	} `json:"sshAuth" yaml:"sshAuth"`
+	authMethod transport.AuthMethod `json:"-" yaml:"-"`
+	remoteName string               `json:"-" yaml:"-"`
 }
 
 type GitOperations interface {
@@ -32,41 +36,49 @@ type GitOperations interface {
 	Checkout(branch string)
 }
 
+// NewGit creates a new Git instance with the provided configuration.
+func NewGit(g Git) (Git, error) {
+	var (
+		err error
+	)
+
+	if g.authMethod, err = g.auth(); err != nil {
+		log.Fatalf("Errore durante l'autenticazione: %v", err) // todo traduzione
+		return g, err
+	}
+
+	g.remoteName = g.getRemoteName()
+
+	return g, nil
+}
+
 // Clone clones the git repository to the specified folder.
 func (g *Git) Clone() {
 	var (
-		auth transport.AuthMethod
-		err  error
+		err error
 	)
 	fmt.Println("Clonazione in corso...") // todo traduzione
-	if auth, err = g.auth(); err != nil {
-		log.Fatalf("Errore durante l'autenticazione: %v", err) // todo traduzione
-	}
 
 	_, err = git.PlainClone(g.Folder, false, &git.CloneOptions{
 		URL:        g.Repo,
 		Progress:   nil,
-		Auth:       auth,
-		RemoteName: g.remoteName(),
+		Auth:       g.authMethod,
+		RemoteName: g.remoteName,
 	})
 
 	if err != nil {
-		log.Fatalf("Errore durante la clonazione: %v", err) // todo traduzione
+		log.Fatalf("Errore durante la clonazione: %v", err) // TODO traduzione
 	}
 
-	fmt.Println("✅ Clonazione completata.") // todo traduzione
+	fmt.Println("✅ Clonazione completata.") // TODO traduzione
 }
 
-/*
 // Pull pulls the latest changes from the remote repository.
 func (g *Git) Pull() {
 	var (
-		auth transport.AuthMethod
-		err  error
+		err error
 	)
-	if auth, err = g.auth(); err != nil {
-		log.Fatalf("Errore durante l'autenticazione: %v", err) // todo traduzione
-	}
+
 	fmt.Println("Pull in corso...")
 	repo, err := git.PlainOpen(g.Folder)
 	if err != nil {
@@ -79,8 +91,8 @@ func (g *Git) Pull() {
 	}
 
 	err = w.Pull(&git.PullOptions{
-		RemoteName: g.remoteName(),
-		Auth:       auth,
+		Auth:       g.authMethod,
+		RemoteName: g.remoteName,
 	})
 	if err != nil && err != git.NoErrAlreadyUpToDate {
 		log.Fatalf("Errore durante il pull: %v", err)
@@ -89,6 +101,7 @@ func (g *Git) Pull() {
 	fmt.Println("✅ Pull completato.")
 }
 
+/*
 func (g *Git) Push() {
 	var (
 		auth transport.AuthMethod
@@ -139,7 +152,7 @@ func (g *Git) Checkout(branch string) {
 }
 */
 // remoteName returns the name of the remote repository.
-func (g *Git) remoteName() string {
+func (g *Git) getRemoteName() string {
 	result := "origin"
 	if g.RemoteName != nil && *g.RemoteName != "" {
 		result = *g.RemoteName
@@ -158,7 +171,7 @@ func (g *Git) auth() (transport.AuthMethod, error) {
 	}
 
 	if g.SshAuth.Agent != nil && *g.SshAuth.Agent {
-		authMethod, err := ssh.NewSSHAgentAuth("git")
+		authMethod, err := ssh.NewSSHAgentAuth(GitName)
 		if err != nil {
 			fmt.Printf("Failed to create SSH agent auth: %s\n", err.Error())
 			return nil, err
@@ -178,7 +191,7 @@ func (g *Git) auth() (transport.AuthMethod, error) {
 			passwd = *g.SshAuth.Passwd
 		}
 
-		publicKeys, _ := ssh.NewPublicKeysFromFile("git", *g.SshAuth.PrivateKeyPath, passwd)
+		publicKeys, _ := ssh.NewPublicKeysFromFile(GitName, *g.SshAuth.PrivateKeyPath, passwd)
 		return publicKeys, nil
 	}
 
