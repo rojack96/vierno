@@ -1,50 +1,46 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
+
+	"github.com/rojack96/vierno/helpers"
+	"gopkg.in/yaml.v3"
 )
 
 type DashboardConfig struct {
-	Enabled bool   `json:"enabled"`
-	Title   string `json:"title"`
+	Enabled bool   `json:"enabled" yaml:"enabled"`
+	Title   string `json:"title" yaml:"title"`
 }
 
 type Vierno struct {
-	Folder              string `json:"folder"`
-	Production          bool   `json:"production"`
-	Port                string `json:"port"`
-	DefaultFormatReturn string `json:"defaultFormatReturn"`
+	Production          bool   `json:"production" yaml:"production"`
+	Port                string `json:"port" yaml:"port"`
+	DefaultFormatReturn string `json:"defaultFormatReturn" yaml:"defaultFormatReturn"`
 	Auth                struct {
-		Enabled  bool   `json:"enabled"`
-		User     string `json:"user"`
-		Password string `json:"password"`
-	} `json:"auth"`
-}
-
-type Git struct {
-	Repo    string `json:"repo"`
-	Branch  string `json:"branch"`
-	AuthKey string `json:"authKey"`
+		Enabled  bool   `json:"enabled" yaml:"enabled"`
+		User     string `json:"user" yaml:"user"`
+		Password string `json:"password" yaml:"password"`
+	} `json:"auth" yaml:"auth"`
 }
 
 type ViernoConfig struct {
-	Vierno    Vierno          `json:"vierno"`
-	Git       Git             `json:"git"`
-	Dashboard DashboardConfig `json:"dashboard"`
+	Vierno    Vierno          `json:"vierno" yaml:"vierno"`
+	Git       helpers.Git     `json:"git" yaml:"git"`
+	Dashboard DashboardConfig `json:"dashboard" yaml:"dashboard"`
 }
 
 func ReadViernoConfig() (*ViernoConfig, error) {
-	// filePath := "vierno.config.json"
+	// filePath := "vierno.config.yml"
 	// Only development, so the file is in the parent directory
-	filePath := "../../vierno-config-server/vierno.config.json"
+	filePath := "../../vierno-config-server/vierno.config.yml"
+
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
 	var config ViernoConfig
-	if err := json.Unmarshal(fileBytes, &config); err != nil {
+	if err := yaml.Unmarshal(fileBytes, &config); err != nil {
 		return nil, err
 	}
 
