@@ -2,11 +2,14 @@ package routes
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rojack96/vierno/config"
 	"github.com/rojack96/vierno/controllers"
 	"github.com/rojack96/vierno/controllers/file_getter"
+	"github.com/rojack96/vierno/controllers/file_reader"
 	"github.com/rojack96/vierno/middleware"
 )
 
@@ -20,6 +23,11 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	r.Static("/assets", assetPath)
 	r.LoadHTMLFiles(indexPath)
 
+	// todo probabilmente solo per dev
+	config := setupCors()
+
+	r.Use(cors.New(config))
+
 	r.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
@@ -28,7 +36,7 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 
 	// Login page (solo per mostrare il form, non gestisce più la sessione)
 	//r.GET("/login", controllers.ShowLogin)
-	r.POST("/login", controllers.PerformLogin)
+	r.POST("/auth", controllers.PerformLogin)
 
 	r.GET("/favicon.ico", func(c *gin.Context) {
 		c.Status(204) // oppure serve un vero file favicon se vuoi
@@ -41,7 +49,19 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	{
 		protected.GET(":app/:profile", file_getter.GetSimpleFile)
 		protected.GET(":app", file_getter.GetFile)
+		protected.GET("folders", file_reader.GetFolders)
 	}
 
 	return r
+}
+
+func setupCors() cors.Config {
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:5173"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Authorization", "Content-Type"}
+	config.AllowCredentials = true
+	config.MaxAge = 12 * time.Hour
+
+	return config
 }

@@ -4,6 +4,7 @@ go 1.24.2
 
 require (
 	github.com/clbanning/mxj/v2 v2.7.0
+	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-git/go-git/v5 v5.16.2
 	gopkg.in/yaml.v3 v3.0.1

@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-const Login = () => {
+interface LoginProps {
+    setIsAuth: (value: boolean) => void;
+}
+
+const Login = ({ setIsAuth }: LoginProps) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -11,21 +15,15 @@ const Login = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // const credentials = btoa(`${username}:${password}`);
-
-        const res = await fetch("/login", {
+        const res = await fetch("http://localhost:4788/auth", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-                username,
-                password,
-            }),
-        })
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            credentials: "include",
+            body: new URLSearchParams({ username, password }),
+        });
 
         if (res.status === 200) {
-            // sessionStorage.setItem("basicAuth", credentials);
+            setIsAuth(true); // ✅ autentica
             navigate("/dashboard");
         } else if (res.status === 401) {
             setError("Credenziali non valide");
