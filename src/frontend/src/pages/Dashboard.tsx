@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
+import Card from "../components/Card";
 
 const Dashboard = () => {
     const [folders, setFolders] = useState<string[]>([]);
 
     useEffect(() => {
-        fetch("http://localhost:4788/folders", {
+        fetch("http://localhost:4788/folders/lookup", {
             method: "GET",
-            credentials: "include", // ✅ fondamentale per inviare il cookie di sessione
+            credentials: "include",
         })
             .then(res => {
                 if (!res.ok) {
@@ -16,21 +17,15 @@ const Dashboard = () => {
                 return res.json();
             })
             .then(data => setFolders(data.folders || []))
-            .catch(err => console.error("Errore caricamento cartelle:", err));
+            .catch(err => console.error("Error open folders", err));
     }, []);
 
 
     return (
-        <main className="dashboard-container">
-            <h1>Benvenuto nella Dashboard!</h1>
-            <div className="card-grid">
-                {folders.map((folder, idx) => (
-                    <div key={idx} className="card">
-                        <h3>{folder}</h3>
-                    </div>
-                ))}
-            </div>
-        </main>
+        <div style={{ padding: "2rem" }}>
+            <h2>Cartelle disponibili</h2>
+            <Card elements={folders} />
+        </div>
     );
 };
 

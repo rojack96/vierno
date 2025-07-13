@@ -49,7 +49,12 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	{
 		protected.GET(":app/:profile", file_getter.GetSimpleFile)
 		protected.GET(":app", file_getter.GetFile)
-		protected.GET("folders", file_reader.GetFolders)
+
+		foldersGroup := protected.Group("/folders")
+		{
+			foldersGroup.GET("lookup", file_reader.GetFolders)
+			foldersGroup.GET(":folder", file_reader.GetFolder)
+		}
 	}
 
 	return r

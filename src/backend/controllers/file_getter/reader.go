@@ -2,9 +2,6 @@ package file_getter
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -171,31 +168,4 @@ func (fr *FileReader) responseYaml() {
 
 func (fr *FileReader) responseXml() {
 	fr.Ctx.Data(200, "application/xml", fr.File)
-}
-
-// fileNameExt returns the base name and extension of a file.
-func fileNameExt(filename string) (string, string) {
-	ext := strings.ToLower(filepath.Ext(filename))
-	name := strings.TrimSuffix(filename, ext)
-	return name, ext
-}
-
-// Finds the first file in 'folder' whose base name matches 'targetName' (ignoring the extension).
-func findFileByName(folder, targetName string) (string, error) {
-	entries, err := os.ReadDir(folder)
-	if err != nil {
-		return "", err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		name := entry.Name()
-		base := strings.TrimSuffix(name, filepath.Ext(name))
-		if base == targetName {
-			return filepath.Join(folder, name), nil
-		}
-	}
-	return "", fmt.Errorf("file '%s' non trovato in %s", targetName, folder)
 }

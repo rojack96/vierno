@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rojack96/vierno/helpers"
 )
 
 // Controller for endpoint /:app/:profile?origin=json|yaml|properties
@@ -26,12 +27,12 @@ func GetSimpleFile(c *gin.Context) {
 
 	folder := filepath.Join(BasePath, app)
 
-	path, err := findFileByName(folder, profile)
+	path, err := helpers.FindFileByName(folder, profile)
 	if err != nil {
 		fmt.Println("Errore nella ricerca del file:", err)
 	}
 
-	_, fr.FileFormat = fileNameExt(path)
+	_, fr.FileFormat = helpers.FileNameExt(path)
 	fr.File, err = os.ReadFile(path)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "file not found or cannot be read"})
@@ -65,12 +66,12 @@ func GetFile(c *gin.Context) {
 
 	folder := filepath.Join(BasePath, app)
 
-	path, err := findFileByName(folder, profile)
+	path, err := helpers.FindFileByName(folder, profile)
 	if err != nil {
 		fmt.Println("Errore nella ricerca del file:", err)
 	}
 
-	_, fr.FileFormat = fileNameExt(path)
+	_, fr.FileFormat = helpers.FileNameExt(path)
 	fr.File, err = os.ReadFile(path)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "file not found or cannot be read"})

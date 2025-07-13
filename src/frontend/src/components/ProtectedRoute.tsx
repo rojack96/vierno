@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAuth }) => {
-    return isAuth ? <Outlet /> : <Navigate to="/" replace />;
+    return isAuth ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;
