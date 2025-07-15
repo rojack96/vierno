@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Card from "../components/Card";
+import Card from "../../components/Card";
 
 const FilePage = () => {
     const { folder } = useParams<{ folder: string }>();

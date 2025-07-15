@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import "./Card.css";
+import "./style.css";
 
 interface CardProps {
     elements: string[];

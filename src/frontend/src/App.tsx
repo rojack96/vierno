@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Layout from "./components/Layout";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./routes";
 import FilePage from "./pages/FilePage";
 import FileViewer from "./pages/FileViewer";
 

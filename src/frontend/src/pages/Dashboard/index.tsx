@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import "./Dashboard.css";
-import Card from "../components/Card";
+import "./style.css";
+import Card from "../../components/Card";
 
 const Dashboard = () => {
     const [folders, setFolders] = useState<string[]>([]);
