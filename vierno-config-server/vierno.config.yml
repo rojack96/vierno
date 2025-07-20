@@ -1,0 +1,31 @@
+# vierno configuration
+vierno:
+  production: false
+  port: "4788"
+  defaultFormatReturn: "json"
+  auth:
+    enabled: true
+    user: "admin"
+    password: "admin"
+
+# git configuration
+git:
+  repo: ""
+  branch: "main"
+  remoteName: "origin" # optional, default is "origin"
+  accessToken: ""
+  # folder: where the git repository will be cloned
+  # if not specified, it will use the default path "./app"
+  folder: "./app"
+  # SSH authentication settings
+  # if agent is true, it will use the SSH agent
+  # otherwise it will use the private key path
+  sshAuth:
+    agent: true
+    privateKeyPath: ""
+    passwd: ""
+
+# dashboard configuration
+dashboard:
+  # enabled: if true, the dashboard will be available at /dashboard
+  enabled: true

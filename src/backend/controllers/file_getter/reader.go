@@ -1,0 +1,172 @@
+package file_getter
+
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
+
+/* FileReader */
+
+type FileReader struct {
+	File              []byte
+	FileFormat        string  // formato del file (json, yaml, properties)
+	RequestFileFormat *string // formato del file richiesto (json, yaml, properties)
+	DefaultReturn     string  // formato di ritorno predefinito (json, yaml, xml)
+	Ctx               *gin.Context
+}
+
+// checkout checks if a branch is specified in the request and performs a checkout if needed.
+func (fr *FileReader) checkout() {
+	branch := fr.Ctx.Query("branch")
+
+	if branch != "" {
+		// TODO implementare il checkout del branch
+		// Questo è un placeholder per il codice che gestirà il checkout del branch
+		fmt.Println("Eseguendo il checkout del branch:", branch)
+		// Qui dovresti aggiungere la logica per cambiare il branch nel repository git
+	}
+}
+
+func (fr *FileReader) returnOriginalFile() {
+
+	response := map[string]func(fr *FileReader){
+		".json":       (*FileReader).responseJson,
+		".yaml":       (*FileReader).responseYaml,
+		".yml":        (*FileReader).responseYaml,
+		".properties": (*FileReader).responseXml,
+		".xml":        (*FileReader).responseXml,
+	}
+
+	if handler, ok := response[fr.FileFormat]; ok {
+		handler(fr)
+		return
+	} else {
+		fr.Ctx.JSON(400, gin.H{"error": "unsupported file type"})
+		return
+	}
+}
+
+func (fr *FileReader) returnConfigFile() {
+	if fr.RequestFileFormat != nil {
+		switch *fr.RequestFileFormat {
+		case "json":
+			fr.defaultByJson()
+			return
+		case "yaml", "yml":
+			fr.defaultByYaml()
+			return
+		case "properties", "xml":
+			fr.defaultByXml()
+			return
+		default:
+			fr.Ctx.JSON(400, gin.H{"error": "unsupported requested file format"})
+			return
+		}
+	}
+
+	switch fr.DefaultReturn {
+	case "json":
+		fr.defaultByJson()
+	case "yaml", "yml":
+		fr.defaultByYaml()
+	case "properties", "xml":
+		fr.defaultByXml()
+	default:
+		fr.defaultByJson()
+	}
+}
+
+func (fr *FileReader) defaultByJson() {
+	var (
+		transformer JsonTransformer
+		err         error
+	)
+
+	switch fr.FileFormat {
+	case ".yaml", ".yml":
+		transformer = &Yaml{File: fr.File}
+	case ".properties", ".xml":
+		transformer = &Xml{File: fr.File}
+	default:
+		fr.responseJson()
+		return
+	}
+
+	// TODO create a function
+	if transformer == nil {
+		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
+		return
+	}
+
+	if fr.File, err = transformer.ToJson(); err != nil {
+		fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed", "details": err.Error()})
+		return
+	}
+	fr.responseJson()
+}
+
+func (fr *FileReader) defaultByYaml() {
+	var (
+		transformer YamlTransformer
+		err         error
+	)
+	switch fr.FileFormat {
+	case ".json":
+		transformer = &Json{File: fr.File}
+	case ".properties", ".xml":
+		transformer = &Xml{File: fr.File}
+	default:
+		fr.responseYaml()
+		return
+	}
+
+	if transformer == nil {
+		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
+		return
+	}
+
+	if fr.File, err = transformer.ToYaml(); err != nil {
+		fr.Ctx.JSON(500, gin.H{"error": "conversion to json failed", "details": err.Error()})
+		return
+	}
+	fr.responseYaml()
+}
+
+func (fr *FileReader) defaultByXml() {
+	var (
+		transformer XmlTransformer
+		err         error
+	)
+	switch fr.FileFormat {
+	case ".json":
+		transformer = &Json{File: fr.File}
+	case ".yaml", ".yml":
+		transformer = &Yaml{File: fr.File}
+	default:
+		fr.responseXml()
+		return
+	}
+
+	if transformer == nil {
+		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
+		return
+	}
+	if fr.File, err = transformer.ToXml(); err != nil {
+		fr.Ctx.JSON(500, gin.H{"error": "conversion to xml failed", "details": err.Error()})
+		return
+	}
+	fr.responseXml()
+}
+
+func (fr *FileReader) responseJson() {
+	fr.Ctx.Data(200, "application/json", fr.File)
+}
+
+func (fr *FileReader) responseYaml() {
+	fr.Ctx.Data(200, "text/plain; charset=utf-8", fr.File)
+}
+
+func (fr *FileReader) responseXml() {
+	fr.Ctx.Data(200, "application/xml", fr.File)
+}
