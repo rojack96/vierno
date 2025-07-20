@@ -93,6 +93,7 @@ func (fr *FileReader) defaultByJson() {
 		return
 	}
 
+	// TODO create a function
 	if transformer == nil {
 		fr.Ctx.JSON(500, gin.H{"error": "internal error: transformer not initialized"})
 		return

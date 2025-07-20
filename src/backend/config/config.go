@@ -29,10 +29,13 @@ type ViernoConfig struct {
 	Dashboard DashboardConfig `json:"dashboard" yaml:"dashboard"`
 }
 
-func ReadViernoConfig() (*ViernoConfig, error) {
-	// filePath := "vierno.config.yml"
-	// Only development, so the file is in the parent directory
-	filePath := "../../vierno-config-server/vierno.config.yml"
+func ReadViernoConfig(devMode bool) (*ViernoConfig, error) {
+
+	filePath := "vierno.config.yml"
+	if devMode {
+		filePath = "../../vierno-config-server/vierno.config.yml"
+
+	}
 
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {

@@ -7,8 +7,14 @@ import (
 
 func ConfigRequired(cfg *config.ViernoConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Puoi salvare la config nel contesto per recuperarla nei controller
 		c.Set("viernoConfig", cfg)
+		c.Next()
+	}
+}
+
+func DevMode(devMode bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("devMode", devMode)
 		c.Next()
 	}
 }

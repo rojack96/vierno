@@ -10,7 +10,13 @@ import (
 )
 
 func GetFolders(c *gin.Context) {
-	root := "../../vierno-config-server/app"
+	devMode := c.MustGet("devMode").(bool)
+
+	root := "./app"
+	if devMode {
+		root = "../../vierno-config-server/app"
+	}
+
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Errore lettura directory"})
@@ -36,7 +42,13 @@ func GetFolder(c *gin.Context) {
 		return
 	}
 
-	basePath := "../../vierno-config-server/app"
+	devMode := c.MustGet("devMode").(bool)
+
+	basePath := "./app"
+	if devMode {
+		basePath = "../../vierno-config-server/app"
+	}
+
 	targetPath := filepath.Join(basePath, folder)
 
 	entries, err := os.ReadDir(targetPath)

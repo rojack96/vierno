@@ -13,20 +13,24 @@ import (
 	"github.com/rojack96/vierno/middleware"
 )
 
-func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
+func SetupRouter(cfg *config.ViernoConfig, devMode bool) *gin.Engine {
 	r := gin.Default()
-	// assetPath := "./dist/assets"
-	// indexPath := "./dist/index.html"
+
+	assetPath := "./dist/assets"
+	indexPath := "./dist/index.html"
 	// Only development, so the assets are in the parent directory
-	assetPath := "../../vierno-config-server/dist/assets"
-	indexPath := "../../vierno-config-server/dist/index.html"
+	if devMode {
+		assetPath = "../../vierno-config-server/dist/assets"
+		indexPath = "../../vierno-config-server/dist/index.html"
+
+		config := setupCors()
+
+		r.Use(cors.New(config))
+		r.Use(middleware.DevMode(devMode))
+	}
+
 	r.Static("/assets", assetPath)
 	r.LoadHTMLFiles(indexPath)
-
-	// todo probabilmente solo per dev
-	config := setupCors()
-
-	r.Use(cors.New(config))
 
 	r.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
@@ -35,7 +39,6 @@ func SetupRouter(cfg *config.ViernoConfig) *gin.Engine {
 	r.Use(middleware.ConfigRequired(cfg))
 
 	// Login page (solo per mostrare il form, non gestisce più la sessione)
-	//r.GET("/login", controllers.ShowLogin)
 	r.POST("/auth", controllers.PerformLogin)
 
 	r.GET("/favicon.ico", func(c *gin.Context) {

@@ -12,10 +12,14 @@ import (
 
 // Controller for endpoint /:app/:profile?origin=json|yaml|properties
 func GetSimpleFile(c *gin.Context) {
+	devMode := c.MustGet("devMode").(bool)
 	// TODO add middleware to recognize if is logged or not
-	// const BasePath = "./app"
+
+	basePath := "./app"
+	if devMode {
+		basePath = "../../vierno-config-server/app"
+	}
 	// Development path
-	const BasePath = "../../vierno-config-server/app"
 
 	fr := FileReader{Ctx: c}
 	fr.checkout()
@@ -25,7 +29,7 @@ func GetSimpleFile(c *gin.Context) {
 	profile := c.Param("profile")
 	isOriginal := c.Query("original") == "true"
 
-	folder := filepath.Join(BasePath, app)
+	folder := filepath.Join(basePath, app)
 
 	path, err := helpers.FindFileByName(folder, profile)
 	if err != nil {
@@ -48,10 +52,13 @@ func GetSimpleFile(c *gin.Context) {
 }
 
 func GetFile(c *gin.Context) {
+	devMode := c.MustGet("devMode").(bool)
 	// TODO add middleware to recognize if is logged or not
-	// const BasePath = "./app"
-	// Development path
-	const BasePath = "../../vierno-config-server/app"
+
+	basePath := "./app"
+	if devMode {
+		basePath = "../../vierno-config-server/app"
+	}
 
 	fr := FileReader{Ctx: c}
 	fr.checkout()
@@ -64,7 +71,7 @@ func GetFile(c *gin.Context) {
 	profile := req[1]
 	fr.RequestFileFormat = &req[2]
 
-	folder := filepath.Join(BasePath, app)
+	folder := filepath.Join(basePath, app)
 
 	path, err := helpers.FindFileByName(folder, profile)
 	if err != nil {
